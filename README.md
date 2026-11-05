@@ -38,6 +38,26 @@ Registrace není. Uživatele vytvoří skript, heslo (aspoň 12 znaků) se zadá
 DATABASE_URL=... npm run create-user -- jmeno
 ```
 
+## API
+
+JSON pod `/api`. Kromě `POST /api/login` a `POST /api/logout` vše jen pro přihlášeného uživatele (jinak 401). Každý požadavek měnící data musí mít hlavičku `X-Requested-With: XMLHttpRequest` (jinak 403). Cizí nebo neexistující záznam vrací 404.
+
+| Metoda a cesta | Popis |
+|---|---|
+| `POST /api/login` `{username, password}` | přihlášení (omezení: 10 neúspěšných pokusů / 15 min / IP) |
+| `POST /api/logout`, `GET /api/me` | odhlášení, aktuální uživatel |
+| `GET /api/projects?kind=&archived=1` | projekty (`kind` = `prace` / `soukrome`) |
+| `POST /api/projects`, `GET/PATCH/DELETE /api/projects/:id` | projekt; smazání smaže i úkoly a soubory příloh |
+| `GET /api/tasks?project_id=&kind=&status=&include_done=1` | úkoly napříč projekty, s `waiting_on`; hotové skryté, pokud není `include_done=1` |
+| `POST /api/projects/:id/tasks`, `GET/PATCH/DELETE /api/tasks/:id` | úkol; detail obsahuje odkazy, přílohy, nákupní seznam se součty a závislosti |
+| `POST /api/tasks/:id/links`, `DELETE /api/links/:id` | odkazy (jen `http(s)://`) |
+| `POST /api/tasks/:id/shopping-items`, `PATCH/DELETE /api/shopping-items/:id` | nákupní seznam |
+| `POST /api/tasks/:id/dependencies` `{depends_on_task_id}`, `DELETE /api/tasks/:id/dependencies/:dependsOnId` | „navazuje na“ (jen upozornění) |
+| `POST /api/tasks/:id/attachments` (multipart, pole `file`) | nahrání přílohy, max. 25 MB |
+| `GET /api/attachments/:id`, `DELETE /api/attachments/:id` | stažení (vždy `attachment`, `nosniff`), smazání |
+
+Stavy úkolu: `napad`, `k_udelani`, `rozdelane`, `hotovo` (Nápad, K udělání, Rozdělané, Hotovo).
+
 ## Vývoj
 
 ```bash
