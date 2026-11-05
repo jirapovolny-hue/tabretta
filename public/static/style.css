@@ -1,0 +1,361 @@
+/* Tabretta: čistý, střídmý vzhled. Světlý a tmavý režim podle systému. */
+
+:root {
+  color-scheme: light dark;
+  --bg: #f6f6f3;
+  --surface: #ffffff;
+  --surface-2: #eeeee9;
+  --text: #1d1f1e;
+  --muted: #646b67;
+  --border: #d9dbd6;
+  --accent: #2f6f5e;
+  --accent-text: #ffffff;
+  --accent-soft: #e1efe9;
+  --danger: #b3261e;
+  --danger-soft: #fbe9e7;
+  --focus: #2f6f5e;
+
+  --st-napad-bg: #ece9f6;     --st-napad-fg: #4a3d82;
+  --st-k_udelani-bg: #e6eef8; --st-k_udelani-fg: #1f4f86;
+  --st-rozdelane-bg: #fdf0d5; --st-rozdelane-fg: #7a4f00;
+  --st-hotovo-bg: #e3f1e5;    --st-hotovo-fg: #23652f;
+  --waiting-bg: #fdeee0;      --waiting-fg: #8a4500;
+
+  --radius: 10px;
+  --tap: 44px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141615;
+    --surface: #1d201f;
+    --surface-2: #272b29;
+    --text: #e8eae8;
+    --muted: #9ba39f;
+    --border: #353a38;
+    --accent: #6cc3a8;
+    --accent-text: #0e1f1a;
+    --accent-soft: #1f3530;
+    --danger: #f2948c;
+    --danger-soft: #3a2220;
+    --focus: #6cc3a8;
+
+    --st-napad-bg: #2d2843;     --st-napad-fg: #c9bff2;
+    --st-k_udelani-bg: #1f2e42; --st-k_udelani-fg: #a9c8ee;
+    --st-rozdelane-bg: #3d3018; --st-rozdelane-fg: #f2cc7d;
+    --st-hotovo-bg: #1f3524;    --st-hotovo-fg: #9fd8a9;
+    --waiting-bg: #3d2a17;      --waiting-fg: #f5b77a;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.45 var(--font);
+}
+
+a { color: var(--accent); }
+a:hover { text-decoration-thickness: 2px; }
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+[hidden] { display: none !important; }
+
+h1, h2, h3 { line-height: 1.2; margin: 0; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1.05rem; }
+
+/* --- Formulářové prvky --- */
+
+input, select, textarea, button { font: inherit; color: inherit; }
+
+input:not([type="checkbox"]):not([type="file"]), select, textarea {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+textarea { min-height: 120px; resize: vertical; white-space: pre-wrap; }
+input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); margin: 0; }
+
+.field { display: grid; gap: 4px; }
+.field > span { font-size: 0.875rem; color: var(--muted); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--tap);
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text);
+  white-space: nowrap;
+}
+.btn:hover { background: var(--surface-2); }
+.btn:disabled { opacity: 0.6; cursor: default; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+.btn-primary:hover { background: var(--accent); filter: brightness(1.08); }
+.btn-danger { color: var(--danger); border-color: var(--danger); }
+.btn-danger:hover { background: var(--danger-soft); }
+.btn-small { min-height: 36px; padding: 4px 10px; font-size: 0.9rem; }
+.btn-icon {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.btn-icon:hover { color: var(--danger); background: var(--danger-soft); }
+
+.error {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.muted { color: var(--muted); }
+.small { font-size: 0.875rem; }
+.stack { display: grid; gap: 12px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.grow { flex: 1 1 auto; min-width: 0; }
+
+/* --- Přihlášení --- */
+
+.login-page { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 28px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: grid;
+  gap: 18px;
+}
+.login-card .brand-title { font-size: 2rem; text-align: center; color: var(--accent); }
+.login-card .slogan { margin: -12px 0 0; text-align: center; }
+
+.slogan { color: var(--muted); font-size: 0.95rem; }
+
+/* --- Hlavička aplikace --- */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex: 1; text-decoration: none; color: inherit; }
+.brand strong { font-size: 1.3rem; color: var(--accent); }
+.brand .slogan { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85rem; }
+
+main.app { max-width: 960px; margin: 0 auto; padding: 16px 16px 64px; display: grid; gap: 16px; }
+main.app.wide { max-width: 1280px; }
+
+.loading { color: var(--muted); padding: 24px 0; text-align: center; }
+
+/* --- Panel nástrojů --- */
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.segmented button {
+  min-height: var(--tap);
+  padding: 6px 14px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+}
+.segmented button:last-child { border-right: 0; }
+.segmented button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); font-weight: 600; }
+
+.toggle { display: inline-flex; align-items: center; gap: 8px; min-height: var(--tap); cursor: pointer; }
+
+/* --- Karty projektů a úkolů --- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.project-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.project-head h2 a, .project-head h3 a { color: inherit; text-decoration: none; }
+.project-head h2 a:hover, .project-head h3 a:hover { text-decoration: underline; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.status { background: var(--st-bg); color: var(--st-fg); }
+.status-napad { --st-bg: var(--st-napad-bg); --st-fg: var(--st-napad-fg); }
+.status-k_udelani { --st-bg: var(--st-k_udelani-bg); --st-fg: var(--st-k_udelani-fg); }
+.status-rozdelane { --st-bg: var(--st-rozdelane-bg); --st-fg: var(--st-rozdelane-fg); }
+.status-hotovo { --st-bg: var(--st-hotovo-bg); --st-fg: var(--st-hotovo-fg); }
+.waiting { background: var(--waiting-bg); color: var(--waiting-fg); font-weight: 500; white-space: normal; }
+.due { background: transparent; border: 1px solid var(--border); font-weight: 500; }
+.due.overdue { border-color: var(--danger); color: var(--danger); }
+
+.task-list { list-style: none; margin: 0; padding: 0; }
+.task-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  min-height: var(--tap);
+}
+.task-row:first-child { border-top: 0; }
+.task-row .title { flex: 1 1 12em; min-width: 0; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+.task-row .title:hover { text-decoration: underline; }
+.task-row.done .title { color: var(--muted); text-decoration: line-through; }
+.task-row .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.task-row .project-name { font-size: 0.85rem; color: var(--muted); }
+
+.quick-add { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.quick-add input { flex: 1 1 12em; }
+
+.empty { color: var(--muted); font-style: italic; margin: 6px 0; }
+
+/* --- Pohled na projekt --- */
+
+.page-head { display: grid; gap: 8px; }
+.page-head .row h2 { overflow-wrap: anywhere; }
+.description { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.back { text-decoration: none; display: inline-flex; min-height: 32px; align-items: center; }
+
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x proximity;
+}
+.kanban-col {
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 160px;
+  scroll-snap-align: start;
+}
+.kanban-col.drop-target { outline: 2px dashed var(--accent); outline-offset: -2px; }
+.kanban-col h3 { display: flex; justify-content: space-between; align-items: center; }
+.kanban-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+.kanban-card[draggable="true"] { cursor: grab; }
+.kanban-card.dragging { opacity: 0.5; }
+.kanban-card a { color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+.kanban-card a:hover { text-decoration: underline; }
+.kanban-card select { min-height: 36px; padding: 4px 8px; font-size: 0.9rem; }
+
+@media (max-width: 720px) {
+  .kanban { grid-template-columns: repeat(4, 82%); }
+}
+
+/* --- Detail úkolu --- */
+
+.section { display: grid; gap: 10px; }
+.section h3 { display: flex; gap: 8px; align-items: baseline; }
+
+.grid-2 { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+@media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.item-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.item-list li { display: flex; align-items: center; gap: 8px; min-height: var(--tap); overflow-wrap: anywhere; }
+.item-list li > .grow a { word-break: break-all; }
+
+.shop-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 5.5em 6.5em auto;
+  gap: 6px;
+  align-items: center;
+}
+.shop-item input:not([type="checkbox"]) { min-height: 38px; padding: 4px 8px; }
+.shop-item.bought .name { text-decoration: line-through; color: var(--muted); }
+.shop-head { font-size: 0.8rem; color: var(--muted); }
+.shop-totals { display: flex; gap: 16px; flex-wrap: wrap; font-weight: 600; }
+@media (max-width: 560px) {
+  .shop-item { grid-template-columns: auto minmax(0, 1fr) 4.5em 5.5em auto; }
+}
+
+.form-inline { display: flex; gap: 8px; flex-wrap: wrap; }
+.form-inline > * { flex: 1 1 10em; }
+.form-inline > .btn { flex: 0 0 auto; }
+
+.danger-zone { display: flex; justify-content: flex-end; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: var(--text);
+  color: var(--bg);
+  z-index: 20;
+}
+.toast.error { background: var(--danger); color: #fff; }
+
+@media (max-width: 560px) {
+  .brand { flex-direction: column; align-items: flex-start; gap: 0; }
+  .brand .slogan { font-size: 0.75rem; max-width: 100%; }
+  main.app { padding: 12px 12px 64px; }
+  .card { padding: 12px; }
+}
+
+/* Odkazy jako segmenty (Projekty / Rozdělané) */
+.segmented a.btn { border: 0; border-right: 1px solid var(--border); border-radius: 0; background: transparent; }
+.segmented a.btn:last-child { border-right: 0; }
+.segmented a.btn[aria-current="page"] { background: var(--accent); color: var(--accent-text); font-weight: 600; }
+
+.title-input { font-size: 1.15rem; font-weight: 600; }

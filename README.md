@@ -38,6 +38,10 @@ Registrace není. Uživatele vytvoří skript, heslo (aspoň 12 znaků) se zadá
 DATABASE_URL=... npm run create-user -- jmeno
 ```
 
+## Frontend
+
+Bez build kroku: `public/` obsahuje čisté HTML, CSS a JS (ES moduly), žádné knihovny z CDN. Bez přihlášení je dostupná jen `/login` a `public/static/` (styly, skript a ikona přihlašovací stránky). Vše ostatní (`/`, `/app/…`) přesměruje na `/login`. Navigace v aplikaci přes `#/`, `#/rozdelane`, `#/archiv`, `#/projekt/ID`, `#/ukol/ID`. Texty se vkládají jen přes `textContent`, CSP nepovoluje inline skripty ani styly.
+
 ## API
 
 JSON pod `/api`. Kromě `POST /api/login` a `POST /api/logout` vše jen pro přihlášeného uživatele (jinak 401). Každý požadavek měnící data musí mít hlavičku `X-Requested-With: XMLHttpRequest` (jinak 403). Cizí nebo neexistující záznam vrací 404.

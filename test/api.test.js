@@ -1,6 +1,7 @@
 import { test, before, after, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { createApp } from '../src/app.js';
@@ -37,6 +38,20 @@ async function loggedIn(baseUrl, username, password) {
   const res = await c.login(username, password);
   assert.equal(res.status, 200, `přihlášení ${username}`);
   return c;
+}
+
+function rawGet(baseUrl, rawPath) {
+  const { hostname, port } = new URL(baseUrl);
+  return new Promise((resolve, reject) => {
+    http
+      .get({ hostname, port, path: rawPath }, (res) => {
+        let body = '';
+        res.setEncoding('utf8');
+        res.on('data', (d) => (body += d));
+        res.on('end', () => resolve({ status: res.statusCode, body }));
+      })
+      .on('error', reject);
+  });
 }
 
 async function uploadFiles() {
@@ -109,6 +124,39 @@ describe('API', { skip: skipWithoutDb }, () => {
       for (let i = 0; i < 3; i++) assert.equal((await c.login('alice', 'spatne-heslo-xyz')).status, 401);
       const blocked = await c.login('alice', PASSWORD_A);
       assert.equal(blocked.status, 429, 'po vyčerpání pokusů je blokováno i správné heslo');
+    });
+
+    test('stránky: bez přihlášení jen přihlašovací stránka a její soubory', async () => {
+      const c = new Client(baseUrl);
+      for (const p of ['/', '/app/index.html', '/app/js/main.js', '/app/js/views/task.js', '/cokoli']) {
+        const res = await c.get(p);
+        assert.equal(res.status, 303, p);
+        assert.equal(res.headers.get('location'), '/login', p);
+      }
+      const login = await c.get('/login');
+      assert.equal(login.status, 200);
+      assert.match(login.data.toString(), /Tabretta/);
+      assert.match(login.data.toString(), /Pro váš osobní i profesní život/);
+      assert.equal((await c.get('/static/style.css')).status, 200);
+      assert.equal((await c.get('/static/login.js')).status, 200);
+      // fetch cestu normalizuje, proto surový požadavek přes node:http
+      for (const p of ['/static/../app/index.html', '/static/%2e%2e/app/index.html', '/static/..%2fapp%2findex.html']) {
+        const res = await rawGet(baseUrl, p);
+        assert.ok([400, 403, 404].includes(res.status), `${p} vrátil ${res.status}`);
+        assert.ok(!res.body.includes('<html'), p);
+      }
+      assert.equal((await c.get('/static/neexistuje.css')).status, 404);
+    });
+
+    test('stránky: po přihlášení aplikace, /login přesměruje na přehled', async () => {
+      const c = await loggedIn(baseUrl, 'alice', PASSWORD_A);
+      const index = await c.get('/');
+      assert.equal(index.status, 200);
+      assert.match(index.headers.get('content-type'), /text\/html/);
+      assert.equal((await c.get('/app/js/main.js')).status, 200);
+      const login = await c.get('/login');
+      assert.equal(login.status, 303);
+      assert.equal(login.headers.get('location'), '/');
     });
 
     test('CSRF hlavička je potřeba i po přihlášení', async () => {
