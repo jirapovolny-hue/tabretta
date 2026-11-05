@@ -1,0 +1,49 @@
+# Návrh pro správce: /etc/systemd/system/tabretta.service
+# Kód: /opt/tabretta (root:root, jen čtení), konfigurace: /etc/tabretta/tabretta.env
+# (root:tabretta, 640), přílohy: /var/lib/tabretta/uploads (vlastník tabretta).
+
+[Unit]
+Description=Tabretta (osobní tracker projektů a úkolů)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tabretta
+Group=tabretta
+WorkingDirectory=/opt/tabretta
+EnvironmentFile=/etc/tabretta/tabretta.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node /opt/tabretta/server.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+
+# --- Sandbox: aplikace smí zapisovat jen do adresáře příloh ---
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/tabretta/uploads
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+# MemoryDenyWriteExecute nelze: V8 (JIT) potřebuje zapisovatelnou a spustitelnou paměť.
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

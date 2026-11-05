@@ -3,7 +3,14 @@
 Osobní tracker projektů a úkolů. „Pro váš osobní i profesní život.“
 Produkce: https://tabretta.blbadomena.cz
 
-> Rozpracováno (fáze 2). README se doplňuje průběžně: nasazení, migrace, vytvoření uživatele a zálohy přibudou s příslušným kódem.
+Express + PostgreSQL (`pg`, bez ORM), frontend bez build kroku. Aplikace poslouchá jen na `127.0.0.1`, před ní je nginx s HTTPS.
+
+## Nasazení, restart, zálohy
+
+Podrobný postup pro správce je v [`deploy/README.md`](deploy/README.md): systémový účet `tabretta`, kód v `/opt/tabretta` (jen čtení), konfigurace `/etc/tabretta/tabretta.env`, přílohy `/var/lib/tabretta/uploads`, služba `tabretta.service` se sandboxem a nginx.
+
+- Restart: `systemctl restart tabretta`, logy: `journalctl -u tabretta`
+- Zálohy: návrh skriptu `deploy/backup/tabretta-backup.sh` (`pg_dump` + archiv příloh do `/var/backups/tabretta`, rotace 14 dní). Zatím se nespouští, cílové úložiště mimo server ještě není vybrané.
 
 ## Požadavky
 
