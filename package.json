@@ -1,0 +1,28 @@
+{
+  "name": "tabretta",
+  "version": "0.1.0",
+  "description": "Tabretta: osobní tracker projektů a úkolů",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.9"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "migrate": "node scripts/migrate.js",
+    "create-user": "node scripts/create-user.js",
+    "test": "node --env-file-if-exists=$HOME/.config/tabretta/test.env --test --test-concurrency=1"
+  },
+  "dependencies": {
+    "bcryptjs": "3.0.3",
+    "connect-pg-simple": "10.0.0",
+    "express": "5.3.0",
+    "express-rate-limit": "8.7.1",
+    "express-session": "1.19.0",
+    "helmet": "8.3.0",
+    "multer": "2.5.0",
+    "pg": "8.23.1"
+  }
+}
