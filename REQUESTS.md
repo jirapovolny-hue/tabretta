@@ -39,3 +39,26 @@ Instalace `npm ci --omit=dev --ignore-scripts` z `package-lock.json`. Verze jsou
 | `multer` | nahrávání příloh (multipart), soubory jdou rovnou do `UPLOAD_DIR` |
 
 `dotenv` nepoužívám: v produkci proměnné načte systemd přes `EnvironmentFile=`, pro vývoj stačí vestavěné `node --env-file`. Testy běží na vestavěném `node --test`, vývojové závislosti nejsou žádné.
+
+---
+
+## R3 (2026-11-05): první nasazení Tabretty, commit `5a0ebde`
+
+**Co:** nasadit commit `5a0ebde` (snapshot přes `git archive`) podle `deploy/README.md`:
+1. Jednorázová příprava: systémový účet `tabretta`, adresáře `/opt/tabretta`, `/etc/tabretta`, `/var/lib/tabretta/uploads`, role `tabretta_user` (ne superuživatel) a databáze `tabretta` s jejím vlastnictvím, `/etc/tabretta/tabretta.env` (`root:tabretta`, 640; `PORT=3100`, `DATABASE_URL`, `SESSION_SECRET` z `openssl rand -hex 32`, `UPLOAD_DIR=/var/lib/tabretta/uploads`; `COOKIE_SECURE` nenastavovat).
+2. `npm ci --omit=dev --ignore-scripts`, migrace pod `tabretta_user` (`node scripts/migrate.js`).
+3. Služba podle `deploy/systemd/tabretta.service` (sandbox, zapisuje jen do uploads). Projdi prosím volby sandboxu. Vynechal jsem `MemoryDenyWriteExecute` (V8 JIT), `ProcSubset=pid` a `~@resources` (Node si při startu zvedá `RLIMIT_NOFILE`).
+4. nginx podle `deploy/nginx/tabretta.conf` (`client_max_body_size 30m`, hlavičky `X-Forwarded-*`), `nginx -t`, reload. `dig +short tabretta.blbadomena.cz` má vrátit `79.76.102.155`, pak `certbot --nginx -d tabretta.blbadomena.cz` a `certbot renew --dry-run`.
+5. Účet pro uživatele přes `scripts/create-user.js` interaktivně, heslo zadá uživatel sám (min. 12 znaků).
+6. Zálohovací skript `deploy/backup/tabretta-backup.sh` je jen návrh, **nespouštět** ani neplánovat.
+
+**Proč:** fáze 2 je hotová. Uživatel bude frontend testovat ručně na nasazené verzi (na serveru není prohlížeč pro automatický test UI).
+
+**Stav před nasazením:** `npm test` 38/38 (API, oddělení dat dvou uživatelů, přílohy, migrace, přístup ke stránkám), `npm audit` 0 zranitelností, `git status` čistý, v lockfilu žádné install skripty.
+
+**Jak ověřit:**
+- `systemctl is-active tabretta` vrátí `active` a `journalctl -u tabretta -n 20` je bez chyb
+- `curl -sI http://127.0.0.1:3100/login` vrátí 200, `curl -sI http://127.0.0.1:3100/` vrátí 303 s `Location: /login`
+- `curl -sI https://tabretta.blbadomena.cz/` vrátí 303 na `/login` s platným certifikátem a v odpovědi je `Strict-Transport-Security`
+- po přihlášení: nahrát přílohu a ověřit, že soubor vznikl v `/var/lib/tabretta/uploads` pod vygenerovaným názvem (48 hex znaků)
+- `gomappin` a `diag` běží beze změny, `free -h` a `df -h /` jsou po nasazení v pořádku
