@@ -1,12 +1,17 @@
 import express from 'express';
 import helmet from 'helmet';
 import { requireCsrfHeader } from './middleware/csrf.js';
+import { createSessionMiddleware } from './session.js';
+import { createApiRouter } from './routes/api.js';
 
 /**
- * Sestaví Express aplikaci. Závislosti (databáze, úložiště session, konfigurace)
- * se předávají zvenku, aby šla aplikace testovat i bez databáze.
+ * Sestaví Express aplikaci. Závislosti (databáze, konfigurace) se předávají
+ * zvenku. S `pool` připojí session a celé API; bez něj (testy middlewaru)
+ * jen předaný `apiRouter`.
  */
-export function createApp({ config, sessionMiddleware = null, apiRouter = null }) {
+export function createApp({ config, pool = null, apiRouter = null, loginLimit, pruneSessions = true }) {
+  const sessionMiddleware = pool ? createSessionMiddleware({ pool, config, pruneSessions }) : null;
+  apiRouter ??= pool ? createApiRouter({ pool, config, loginLimit }) : null;
   const app = express();
 
   // Před aplikací stojí jen nginx na stejném stroji.
@@ -37,11 +42,14 @@ export function createApp({ config, sessionMiddleware = null, apiRouter = null }
     }),
   );
 
-  if (sessionMiddleware) app.use(sessionMiddleware);
-
   const api = express.Router();
+  api.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+  });
   api.use(express.json({ limit: '100kb' }));
   api.use(requireCsrfHeader);
+  if (sessionMiddleware) api.use(sessionMiddleware);
   if (apiRouter) api.use(apiRouter);
   api.use((req, res) => res.status(404).json({ error: 'Nenalezeno.' }));
   app.use('/api', api);
