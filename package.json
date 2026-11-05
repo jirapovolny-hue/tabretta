@@ -13,7 +13,7 @@
     "start": "node server.js",
     "migrate": "node scripts/migrate.js",
     "create-user": "node scripts/create-user.js",
-    "test": "node --env-file-if-exists=$HOME/.config/tabretta/test.env --test --test-concurrency=1"
+    "test": "node --env-file-if-exists=$HOME/.config/tabretta/test.env --test --test-concurrency=1 'test/*.test.js'"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",

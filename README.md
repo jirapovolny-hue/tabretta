@@ -22,6 +22,22 @@ Jen názvy, hodnoty nikdy do repa (viz `.env.example`). V produkci je načítá 
 | `UPLOAD_DIR` | absolutní cesta k adresáři příloh (jediné místo, kam aplikace zapisuje) |
 | `COOKIE_SECURE` | `0` jen pro lokální vývoj přes http, jinak nenastavovat |
 
+## Migrace
+
+Číslované SQL soubory v `db/migrations/` (`NNN_nazev.sql`). Skript je aplikuje v pořadí, každou v transakci, a eviduje je v tabulce `schema_migrations` (název + SHA-256 obsahu). Opakované spuštění nic nedělá. Změna už provedené migrace je chyba: migrace se neupravují, jen se přidávají nové. Nevyžaduje superuživatele ani rozšíření. Tabulku `session` pro `connect-pg-simple` vytváří migrace, ne aplikace.
+
+```bash
+DATABASE_URL=... npm run migrate
+```
+
+## Vytvoření uživatele
+
+Registrace není. Uživatele vytvoří skript, heslo (aspoň 12 znaků) se zadává skrytě v terminálu, nikdy jako argument:
+
+```bash
+DATABASE_URL=... npm run create-user -- jmeno
+```
+
 ## Vývoj
 
 ```bash
