@@ -1,13 +1,17 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import helmet from 'helmet';
 import { requireCsrfHeader } from './middleware/csrf.js';
 import { createSessionMiddleware } from './session.js';
 import { createApiRouter } from './routes/api.js';
 
+const PUBLIC_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
+
 /**
  * Sestaví Express aplikaci. Závislosti (databáze, konfigurace) se předávají
- * zvenku. S `pool` připojí session a celé API; bez něj (testy middlewaru)
- * jen předaný `apiRouter`.
+ * zvenku. S `pool` připojí session, celé API a stránky; bez něj (testy
+ * middlewaru) jen předaný `apiRouter`.
  */
 export function createApp({ config, pool = null, apiRouter = null, loginLimit, pruneSessions = true }) {
   const sessionMiddleware = pool ? createSessionMiddleware({ pool, config, pruneSessions }) : null;
@@ -42,6 +46,11 @@ export function createApp({ config, pool = null, apiRouter = null, loginLimit, p
     }),
   );
 
+  // Veřejné jsou jen styly, skript a ikona přihlašovací stránky.
+  app.use('/static', express.static(path.join(PUBLIC_DIR, 'static'), { index: false, fallthrough: false }));
+
+  if (sessionMiddleware) app.use(sessionMiddleware);
+
   const api = express.Router();
   api.use((req, res, next) => {
     res.set('Cache-Control', 'no-store');
@@ -49,11 +58,40 @@ export function createApp({ config, pool = null, apiRouter = null, loginLimit, p
   });
   api.use(express.json({ limit: '100kb' }));
   api.use(requireCsrfHeader);
-  if (sessionMiddleware) api.use(sessionMiddleware);
   if (apiRouter) api.use(apiRouter);
   api.use((req, res) => res.status(404).json({ error: 'Nenalezeno.' }));
   app.use('/api', api);
 
+  if (sessionMiddleware) {
+    const noStore = (res) => res.set('Cache-Control', 'no-store');
+
+    app.get('/login', (req, res) => {
+      if (req.session?.userId) return res.redirect(303, '/');
+      noStore(res);
+      res.sendFile(path.join(PUBLIC_DIR, 'login.html'));
+    });
+
+    // Vše ostatní jen po přihlášení; nepřihlášeného přesměrujeme na /login.
+    app.use((req, res, next) => {
+      if (req.session?.userId) return next();
+      if (req.method === 'GET' || req.method === 'HEAD') return res.redirect(303, '/login');
+      res.status(401).end();
+    });
+
+    app.get('/', (req, res) => {
+      noStore(res);
+      res.sendFile(path.join(PUBLIC_DIR, 'app', 'index.html'));
+    });
+    app.use(
+      '/app',
+      express.static(path.join(PUBLIC_DIR, 'app'), {
+        index: false,
+        setHeaders: (res) => res.set('Cache-Control', 'private, no-cache'),
+      }),
+    );
+  }
+
+  app.use((req, res) => res.status(404).type('text/plain; charset=utf-8').send('Nenalezeno.'));
   app.use(errorHandler);
   return app;
 }
